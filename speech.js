@@ -140,17 +140,15 @@
         Array.from(marked).map(d => d.style.outline = '0')
     }
 
-    instructionBtn.onclick = () => {
-        document.querySelector('.instructionContainer').style.left = '0';
-        document.querySelector('.instructionContainer').style.transition = '0.5s linear';
-        document.querySelector('.instructionContainer').style.opacity = '1';
+    instructionBtn.onclick = ()=>{
+        document.querySelector('.instructionContainer').classList.add('show');
+        document.querySelector('.instructionContainer').classList.remove('hide');
         close.tabIndex = 0;
     }
 
-    close.onclick = () => {
-        document.querySelector('.instructionContainer').style.left = '180%';
-        document.querySelector('.instructionContainer').style.transition = '0.5s linear';
-        document.querySelector('.instructionContainer').style.opacity = '0';
+    close.onclick = ()=>{
+        document.querySelector('.instructionContainer').classList.add('hide');
+        document.querySelector('.instructionContainer').classList.remove('show');
         close.tabIndex = -1;
     }
 })();
