@@ -1,47 +1,59 @@
-<h3 style='text-align: center'>Send Email with Speech</h3>
-<div class="main">
-</div>
-<div class='speech'>( Click start button &amp; talk )</div>
-<button class='start' tabindex="0">Start</button>
-<button class='stop'>Stop</button>
-<button class='email'>Send Email</button>
-<button class='instructionBtn'>Instruction</button>
-<button class='clear'>Clear</button>
-<span class="statusBar" data-text='Listening...'></span>
-<br/>
-<div class="instructionContainer" tabindex="-1">
-  <button class='instructionClose' tabindex="-1">X</button>
-  <h3>Instructions:</h3>
-  <ol>
-    <li>Click Start button and click 'allow' to use microphone if popup comes up.</li>
-    <li>After allowing, just start talking means your subject text.</li>
-    <li>Speaking Commands: 
-      <ul>
-        <li>For comma(,) say <mark class='markText'>'comma'</mark>.</li>
-        <li>For fullstop(.) say <mark class='markText'>'full stop'</mark>.</li>
-        <li>For exclamation(!) say <mark class='markText'>'exclamation sign'</mark>.</li>
-        <li>For question mark(?) say <mark class='markText'>'question mark'</mark>.</li>
-        <li>For delete something, say <mark class='markText'>'delete now'</mark>.</li>
-      </ul>
-    </li>
-    <li>After completing your subject, say <mark class='markText'>'line break'</mark> to break the line for your body content. After break, the body content part will start.</li>
-    <li>Say <mark class="markText">'paragraph break'</mark> for provide break between two lines.</li>
-    <li>When everything's done means after completing your body part, say <mark class='markText'>'send email'</mark> to open your default email provider(wheather it's a app or gmail account) and just edit your recipient's email address and send email.</li>
-    <li>If you click send email button without provide 'line break' command (see point 4), then subject and body both will take the same content. </li>
-  </ol>
-  <h3>Background Color Change Commands:</h3>
-  <pre style='white-space: pre-wrap;'>
-  {
-    <span>Green : </span><mark class='markText'>'green'</mark><br>
-    <span>Purple : </span><mark class='markText'>'purple'</mark><br>
-    <span>Yellow : </span><mark class='markText'>'yellow'</mark><br>
-    <span>White : </span><mark class='markText'>'white'</mark><br>
-    <span>Tomato : </span><mark class='markText'>'tomato'</mark><br>
-    <span>Tan : </span><mark class='markText'>'tan'</mark><br>
-    <span>Thistle : </span><mark class='markText'>'thistle'</mark><br>
-    <span>Wheat : </span><mark class='markText'>'wheat'</mark><br>
-    <span>Lime : </span><mark class='markText'>'lime'</mark>
-  }
-  </pre>
-  <small class='smallText'><span>*</span> Yellow mark texts are the commands.</small>
-</div>
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width">
+  <title>Send Email with Speech Recognition</title>
+  <link rel="stylesheet" href="index.css" type="text/css" />
+</head>
+<body>
+  <h3 style='text-align: center'>Send Email with Speech</h3>
+  <div class="main">
+  </div>
+  <div class='speech'>( Click start button &amp; talk )</div>
+  <button class='start' tabindex="0">Start</button>
+  <button class='stop'>Stop</button>
+  <button class='email'>Send Email</button>
+  <button class='instructionBtn'>Instruction</button>
+  <button class='clear'>Clear</button>
+  <span class="statusBar" data-text='Listening...'></span>
+  <br/>
+  <div class="instructionContainer" tabindex="-1">
+    <button class='instructionClose' tabindex="-1">X</button>
+    <h3>Instructions:</h3>
+    <ol>
+      <li>Click Start button and click 'allow' to use microphone if popup comes up.</li>
+      <li>After allowing, just start talking means your subject text.</li>
+      <li>Speaking Commands: 
+        <ul>
+          <li>For comma(,) say <mark class='markText'>'comma'</mark>.</li>
+          <li>For fullstop(.) say <mark class='markText'>'full stop'</mark>.</li>
+          <li>For exclamation(!) say <mark class='markText'>'exclamation sign'</mark>.</li>
+          <li>For question mark(?) say <mark class='markText'>'question mark'</mark>.</li>
+          <li>For delete something, say <mark class='markText'>'delete now'</mark>.</li>
+        </ul>
+      </li>
+      <li>After completing your subject, say <mark class='markText'>'line break'</mark> to break the line for your body content. After break, the body content part will start.</li>
+      <li>Say <mark class="markText">'paragraph break'</mark> for provide break between two lines.</li>
+      <li>When everything's done means after completing your body part, say <mark class='markText'>'send email'</mark> to open your default email provider(wheather it's a app or gmail account) and just edit your recipient's email address and send email.</li>
+      <li>If you click send email button without provide 'line break' command (see point 4), then subject and body both will take the same content. </li>
+    </ol>
+    <h3>Background Color Change Commands:</h3>
+    <pre style='white-space: pre-wrap;'>
+    {
+      <span>Green : </span><mark class='markText'>'green'</mark><br>
+      <span>Purple : </span><mark class='markText'>'purple'</mark><br>
+      <span>Yellow : </span><mark class='markText'>'yellow'</mark><br>
+      <span>White : </span><mark class='markText'>'white'</mark><br>
+      <span>Tomato : </span><mark class='markText'>'tomato'</mark><br>
+      <span>Tan : </span><mark class='markText'>'tan'</mark><br>
+      <span>Thistle : </span><mark class='markText'>'thistle'</mark><br>
+      <span>Wheat : </span><mark class='markText'>'wheat'</mark><br>
+      <span>Lime : </span><mark class='markText'>'lime'</mark>
+    }
+    </pre>
+    <small class='smallText'><span>*</span> Yellow mark texts are the commands.</small>
+    </div>
+    <script src="index.js" type="text/javascript"></script>
+  </body>
+</html>
