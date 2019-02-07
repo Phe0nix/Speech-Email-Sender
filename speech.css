@@ -32,11 +32,23 @@ button:not(.instructionClose):focus{
 /* Instruction style */
 .instructionContainer{
   position: absolute;
-  overflow: hidden;
+  overflow-x: hidden;
   overflow-y: visible;
   top:0; left: 100%; bottom: 0;
   background: rgba(0,0,0,0.7);
   padding: 10px 20px;
+}
+.instructionContainer.hide{
+  left: 180%;
+  transition: 0.5s linear;
+  opacity: 0;
+  visibility: hidden;
+}
+.instructionContainer.show{
+  left: 0;
+  transition: 0.5s linear;
+  opacity: 1;
+  visibility: visible;
 }
 .instructionContainer h3,
 .instructionContainer ol li,
