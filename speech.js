@@ -1,6 +1,4 @@
 (function() {
-    (window.SpeechRecognition || window.webkitSpeechRecognition) ? (window.SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition) : (console.log('Speech Recognition not support'));
-
     var speech = document.querySelector('.speech'),
         startBtn = document.querySelector('.start'),
         stopBtn = document.querySelector('.stop'),
@@ -11,7 +9,10 @@
         close = document.querySelector('.instructionClose'),
         small = document.querySelector('.smallText'),
         marked = document.querySelectorAll('.markText'),
-        clearText = document.querySelector('.clear');
+        clearText = document.querySelector('.clear'),
+        notSupport = document.querySelector('.notSupport');
+    
+    (window.SpeechRecognition || window.webkitSpeechRecognition) ? ((window.SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition), notSupport.classList.add('hide')) : notSupport.classList.add('show');
 
     var recognition = new SpeechRecognition();
     recognition.interimResults = true;
