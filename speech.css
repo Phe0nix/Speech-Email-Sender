@@ -79,10 +79,34 @@ button:not(.instructionClose):focus{
 }
 .instructionContainer small,
 .instructionContainer pre{
-  color: white;
+  color: #fff;
 }
 .instructionContainer small:hover{
   border-bottom: 1px solid red;
+}
+.notSupport {
+  width: 380px;
+  margin: 40px auto;
+  font-family: sans-serif;
+  text-align: center;
+  background: linear-gradient(to right, #d04848 0%, #e27479 50%, #d04848 90%);
+  padding: 24px 10px;
+  color: #fff;
+  font-size: 14px;
+  border-radius: 14px;
+  box-shadow: 4px 6px 15px 0 rgba(0, 0, 0, 0.4);
+}
+
+.notSupport p:first-child span:not(:last-child) {
+  margin-right: 5px;
+}
+
+.notSupport.hide{
+  display: none;
+}
+
+.notSupport.show{
+  display: block;
 }
 @media screen and (max-width: 350px){
   .instructionContainer ol{
