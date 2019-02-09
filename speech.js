@@ -34,7 +34,7 @@
                 console.log(span.innerHTML);
             }
             if (span.innerHTML.includes('paragraph break')) {
-                span.innerHTML = '<br>';
+                span.innerHTML = '<br><br>';
                 console.log(span.innerHTML);
             }
             if (span.innerHTML.includes('full stop')) {
