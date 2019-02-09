@@ -4,7 +4,7 @@
         stopBtn = document.querySelector('.stop'),
         msg = document.querySelector('.main'),
         status = document.querySelector('.statusBar'),
-        email = document.querySelector('.email'),
+        //email = document.querySelector('.email'),
         instructionBtn = document.querySelector('.instructionBtn'),
         close = document.querySelector('.instructionClose'),
         small = document.querySelector('.smallText'),
@@ -73,11 +73,31 @@
                         subject = p1.map(d => d.innerHTML);
                         body = p2.map(d => d.innerHTML);
                     });
-                    window.open('mailto:name@domain.com?subject=' + subject.join(' ') + '&body=' + body.join(' ').replace(/(<br>)/g, '%0D'), '_self');
+                    window.open('mailto:name@domain.com?subject=' + subject.join(' ') + '&body=' + body.join(' ').replace(/(<br><br>)/g, '%0D'), '_self');
                 }
             }
+            
+            var sendGmail = () => {
+    if (msg.innerText === '') {
+        alert('No text is there for sending email!\nPlease click \'Start\' button to speak.\nYou\'re great. You can do it. Just Yell !');
+    } else {
+        var dam = Array.from(document.querySelectorAll('.main span')),
+            p1, p2, index, subject, body;
 
-            email.onclick = sendEmail;
+        dam.map((d, i) => {
+            if (d.innerHTML === '<p></p>') {
+                index = i;
+            }
+            p1 = dam.slice(0, index), p2 = dam.slice(index + 1, dam.length);
+
+            subject = p1.map(d => d.innerHTML);
+            body = p2.map(d => d.innerHTML);
+        });
+        window.open('https://mail.google.com/mail/u/0/?view=cm&fs=1&tf=1&to=someone@gmail.com&su=' + subject.join(' ') + '&body=' + body.join(' ').replace(/(<br><br>)/g, '%0D') + '&cc=cc@mail.com&bcc=bcc@mail.com', '_blank');
+    }
+}
+
+            //email.onclick = sendEmail;
 
             if (span2.innerHTML.includes('delete now')) {
                 var g = Array.from(document.querySelectorAll('.main span'));
@@ -88,7 +108,9 @@
                 });
             } else if (span2.innerHTML.includes('send email')) {
                 sendEmail();
-            } else {
+            } else if (span2.innerHTML.includes('send Gmail')) {
+      sendGmail();
+    } else {
                 msg.appendChild(span);
             }
         }
