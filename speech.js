@@ -11,7 +11,7 @@
         marked = document.querySelectorAll('.markText'),
         clearText = document.querySelector('.clear'),
         notSupport = document.querySelector('.notSupport');
-    
+
     (window.SpeechRecognition || window.webkitSpeechRecognition) ? ((window.SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition), notSupport.classList.add('hide')) : notSupport.classList.add('show');
 
     var recognition = new SpeechRecognition();
@@ -76,26 +76,26 @@
                     window.open('mailto:name@domain.com?subject=' + subject.join(' ') + '&body=' + body.join(' ').replace(/(<br><br>)/g, '%0D'), '_self');
                 }
             }
-            
+
             var sendGmail = () => {
-    if (msg.innerText === '') {
-        alert('No text is there for sending email!\nPlease click \'Start\' button to speak.\nYou\'re great. You can do it. Just Yell !');
-    } else {
-        var dam = Array.from(document.querySelectorAll('.main span')),
-            p1, p2, index, subject, body;
+                if (msg.innerText === '') {
+                    alert('No text is there for sending email!\nPlease click \'Start\' button to speak.\nYou\'re great. You can do it. Just Yell !');
+                } else {
+                    var dam = Array.from(document.querySelectorAll('.main span')),
+                        p1, p2, index, subject, body;
 
-        dam.map((d, i) => {
-            if (d.innerHTML === '<p></p>') {
-                index = i;
+                    dam.map((d, i) => {
+                        if (d.innerHTML === '<p></p>') {
+                            index = i;
+                        }
+                        p1 = dam.slice(0, index), p2 = dam.slice(index + 1, dam.length);
+
+                        subject = p1.map(d => d.innerHTML);
+                        body = p2.map(d => d.innerHTML);
+                    });
+                    window.open('https://mail.google.com/mail/u/0/?view=cm&fs=1&tf=1&to=someone@gmail.com&su=' + subject.join(' ') + '&body=' + body.join(' ').replace(/(<br><br>)/g, '%0D') + '&cc=cc@mail.com&bcc=bcc@mail.com', '_blank');
+                }
             }
-            p1 = dam.slice(0, index), p2 = dam.slice(index + 1, dam.length);
-
-            subject = p1.map(d => d.innerHTML);
-            body = p2.map(d => d.innerHTML);
-        });
-        window.open('https://mail.google.com/mail/u/0/?view=cm&fs=1&tf=1&to=someone@gmail.com&su=' + subject.join(' ') + '&body=' + body.join(' ').replace(/(<br><br>)/g, '%0D') + '&cc=cc@mail.com&bcc=bcc@mail.com', '_blank');
-    }
-}
 
             //email.onclick = sendEmail;
 
@@ -109,8 +109,8 @@
             } else if (span2.innerHTML.includes('send email')) {
                 sendEmail();
             } else if (span2.innerHTML.includes('send Gmail')) {
-      sendGmail();
-    } else {
+                sendGmail();
+            } else {
                 msg.appendChild(span);
             }
         }
@@ -163,13 +163,13 @@
         Array.from(marked).map(d => d.style.outline = '0')
     }
 
-    instructionBtn.onclick = ()=>{
+    instructionBtn.onclick = () => {
         document.querySelector('.instructionContainer').classList.add('show');
         document.querySelector('.instructionContainer').classList.remove('hide');
         close.tabIndex = 0;
     }
 
-    close.onclick = ()=>{
+    close.onclick = () => {
         document.querySelector('.instructionContainer').classList.add('hide');
         document.querySelector('.instructionContainer').classList.remove('show');
         close.tabIndex = -1;
