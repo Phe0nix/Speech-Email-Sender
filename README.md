@@ -19,8 +19,8 @@ Send email with speech recognition means just start talking and send emails. No 
 
 4. After completing your subject, say `'line break'` to break the line for your body content. After break, the body content part will start.
 5. Say `'paragraph break'` for provide break between two lines.
-6. When everything's done means after completing your body part, say `'send email'` to open your default email provider(wheather it's a app or gmail account) and send mail specifically via gmail, just say `'send gmail'` and it'll open gmail.com and then just edit your recipient's email address and send email.
-7. If you click send email button without provide `'line break'` command (see point 4), then subject and body both will take the same content.
+6. When everything's done means after completing your body part, say `'send email'` to open your default email provider(whether it's a app or gmail account) and send mail specifically via gmail, just say `'send gmail'` and it'll open gmail.com and then just edit your recipient's email address and send email.
+7. If you send email without provide `'line break'` command (see point 4), then subject and body both will take the same content.
 
 ### Background Color Change Commands:
   
