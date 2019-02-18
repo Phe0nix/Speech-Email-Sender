@@ -1,0 +1,19 @@
+{
+  "name": "Speech Email Sender",
+  "description": "Web Speech API  speech recognition demo",
+  "type": "privileged",
+  "launch_path": "/index.html",
+  "developer": {
+    "name": "Pranab Dey",
+    "url": "https://phe0nix.github.io/Speech-Email-Sender/"
+  },
+  "default_locale": "en",
+  "permissions": {
+    "audio-capture" : {
+      "description" : "Audio capture"
+    },
+    "speech-recognition" : {
+      "description" : "Speech recognition"
+    }
+  }
+}
