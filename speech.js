@@ -1,4 +1,4 @@
-(function() {
+!(function() {
     var speech = document.querySelector('.speech'),
         startBtn = document.querySelector('.start'),
         stopBtn = document.querySelector('.stop'),
