@@ -1,69 +1,206 @@
 <!DOCTYPE html>
-<html>
-
+<html lang="en">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Send Email with Speech Recognition</title>
-    <link rel="stylesheet" href="speech.min.css" type="text/css" />
+    <meta name="description" content="Send emails using speech recognition - no typing required!">
+    <title>Speech Email Sender - Voice to Email</title>
+    <link rel="stylesheet" href="speech.css" type="text/css" />
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6373746702889938" crossorigin="anonymous"></script>
   </head>
 
   <body>
-    <h3 style='text-align: center'>Send Email with Speech</h3>
-    <p style='text-align: center;'><a href="https://github.com/Phe0nix/Speech-Email-Sender" target="_blank" style="background: lightgrey; padding: 3px 8px; color:#333; text-decoration: none; border: 1px solid #333; border-radius: 6px;">Github</a></p>
-    <div class="main">
+    <!-- Header -->
+    <div class="header">
+      <div class="headerContent">
+        <h1 class="title">🎙️ Speech Email Sender</h1>
+        <p class="subtitle">Send emails with your voice - no typing needed!</p>
+        <a href="https://github.com/Phe0nix/Speech-Email-Sender" target="_blank" rel="noopener noreferrer" class="githubLink">📎 GitHub Repository</a>
+      </div>
     </div>
-    <div class='speech'>( Click start button &amp; talk )</div>
-    <button class='start' tabindex="0">Start</button>
-    <button class='stop'>Stop</button>
-<!--     <button class='email'>Send Email</button> -->
-    <button class='instructionBtn'>Instruction</button>
-    <button class='clear'>Clear</button>
-    <span class="statusBar" data-text='Listening...'></span>
-    <br/>
-    <div class="instructionContainer hide" tabindex="-1">
-      <button class='instructionClose' tabindex="-1">X</button>
-      <h3>Instructions:</h3>
-      <ol>
-        <li>Click Start button and click 'allow' to use microphone if popup comes up.</li>
-        <li>After allowing, just start talking means your subject text.</li>
-        <li>Speaking Commands:
+
+    <div class="container">
+      <!-- Browser Compatibility Warning -->
+      <div class="notSupport" role="alert" aria-live="polite">
+        <p><span>❌</span><span>Not Supported</span></p>
+        <p>Speech Recognition works best on Chrome, Edge, and Safari</p>
+        <p>Please open this on a supported browser</p>
+      </div>
+
+      <!-- Main Section -->
+      <div class="mainSection">
+        <!-- Email Inputs -->
+        <div class="emailInputsSection">
+          <h2>Email Recipients</h2>
+          <div class="emailInputs">
+            <div class="emailInput">
+              <label for="defaultEmail">📧 Default Email:</label>
+              <input type="email" id="defaultEmail" placeholder="your-email@domain.com" value="name@domain.com" aria-label="Default email recipient">
+            </div>
+            <div class="emailInput">
+              <label for="gmailEmail">📧 Gmail Account:</label>
+              <input type="email" id="gmailEmail" placeholder="your-email@gmail.com" value="someone@gmail.com" aria-label="Gmail recipient">
+            </div>
+          </div>
+        </div>
+
+        <!-- Interim Transcription Display -->
+        <div class="interimDisplay" id="interimDisplay" aria-live="polite" aria-label="Current speech being recognized"></div>
+
+        <!-- Text Editor Area -->
+        <div class="editorSection">
+          <div class="editorHeader">
+            <h2>📝 Email Draft</h2>
+            <div class="editorActions">
+              <button class="copyBtn" id="copyBtn" title="Copy draft to clipboard" aria-label="Copy draft to clipboard">📋 Copy</button>
+              <button class="undoBtn" id="undoBtn" title="Undo last change (Ctrl+Z)" aria-label="Undo">↶ Undo</button>
+              <button class="redoBtn" id="redoBtn" title="Redo last undo (Ctrl+Y)" aria-label="Redo">↷ Redo</button>
+            </div>
+          </div>
+          <div class="main" id="main" role="textbox" aria-label="Your email draft text"></div>
+          <div class="charCount">
+            <span>Characters: <span id="charCount">0</span></span>
+            <span class="separator">|</span>
+            <span>Words: <span id="wordCount">0</span></span>
+          </div>
+        </div>
+
+        <!-- Speech Controls -->
+        <div class="controlsSection">
+          <div class="mainControls">
+            <button class="start" id="startBtn" aria-label="Start listening to your voice">🎤 Start Listening</button>
+            <button class="stop" id="stopBtn" aria-label="Stop listening">⏹️ Stop</button>
+            <button class="clear" id="clearBtn" aria-label="Clear all text">🗑️ Clear All</button>
+          </div>
+          
+          <div class="statusIndicator">
+            <div class="statusDot"></div>
+            <span class="statusText">Ready</span>
+          </div>
+
+          <div class="sendControls">
+            <button class="sendEmailBtn" id="sendEmailBtn" aria-label="Send via default email client">📧 Send Email</button>
+            <button class="sendGmailBtn" id="sendGmailBtn" aria-label="Send via Gmail">📧 Send Gmail</button>
+          </div>
+        </div>
+
+        <!-- Quick Reference Panel -->
+        <div class="quickReference">
+          <div class="quickRefHeader" id="quickRefHeader">
+            <h3>⚡ Quick Commands</h3>
+            <button class="toggleQuickRef" id="toggleQuickRef" aria-label="Toggle quick reference panel">−</button>
+          </div>
+          <div class="quickRefContent" id="quickRefContent">
+            <div class="commandGroup">
+              <h4>Text Formatting</h4>
+              <div class="commands">
+                <div class="command"><span class="cmd">comma</span> → ,</div>
+                <div class="command"><span class="cmd">full stop</span> → .</div>
+                <div class="command"><span class="cmd">exclamation sign</span> → !</div>
+                <div class="command"><span class="cmd">question mark</span> → ?</div>
+              </div>
+            </div>
+            <div class="commandGroup">
+              <h4>Email Commands</h4>
+              <div class="commands">
+                <div class="command"><span class="cmd">line break</span> → Subject/Body separator</div>
+                <div class="command"><span class="cmd">paragraph break</span> → Line break</div>
+                <div class="command"><span class="cmd">delete now</span> → Remove last item</div>
+              </div>
+            </div>
+            <div class="commandGroup">
+              <h4>Send Commands</h4>
+              <div class="commands">
+                <div class="command"><span class="cmd">send email</span> → Open email client</div>
+                <div class="command"><span class="cmd">send gmail</span> → Open Gmail</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Additional Controls -->
+        <div class="additionalControls">
+          <button class="instructionBtn" id="instructionBtn" aria-label="View detailed instructions">ℹ️ Full Instructions</button>
+          <button class="previewBtn" id="previewBtn" aria-label="Preview email before sending">👁️ Preview Email</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Instructions Modal -->
+    <div class="instructionContainer hide" id="instructionContainer" role="dialog" aria-modal="true" aria-labelledby="instructionTitle" tabindex="-1">
+      <div class="instructionContent">
+        <button class="instructionClose" id="instructionClose" aria-label="Close instructions">✕</button>
+        <h2 id="instructionTitle">📖 Complete Instructions</h2>
+        <div class="instructionBody">
+          <h3>Getting Started</h3>
+          <ol>
+            <li>Click the <strong>Start Listening</strong> button</li>
+            <li>Your browser will ask for microphone permission - click <strong>Allow</strong></li>
+            <li>Start speaking your email subject</li>
+            <li>Use the commands below to format your text</li>
+          </ol>
+
+          <h3>Text Formatting Commands</h3>
           <ul>
-            <li>For comma(,) say <mark class='markText'>'comma'</mark>.</li>
-            <li>For fullstop(.) say <mark class='markText'>'full stop'</mark>.</li>
-            <li>For exclamation(!) say <mark class='markText'>'exclamation sign'</mark>.</li>
-            <li>For question mark(?) say <mark class='markText'>'question mark'</mark>.</li>
-            <li>For delete something, say <mark class='markText'>'delete now'</mark>.</li>
+            <li><mark>comma</mark> → adds a comma (,)</li>
+            <li><mark>full stop</mark> → adds a period (.)</li>
+            <li><mark>exclamation sign</mark> → adds an exclamation (!)</li>
+            <li><mark>question mark</mark> → adds a question mark (?)</li>
+            <li><mark>delete now</mark> → removes the last spoken item</li>
           </ul>
-        </li>
-        <li>After completing your subject, say <mark class='markText'>'line break'</mark> to break the line for your body content. After break, the body content part will start.</li>
-        <li>Say <mark class="markText">'paragraph break'</mark> for provide break between two lines.</li>
-        <li>When everything's done means after completing your body part, say <mark class='markText'>'send email'</mark> to open your default email provider(wheather it's a app or gmail account) and send mail specifically via gmail, just say <mark class="markText">send gmail</mark> and it'll open gmail.com and then just edit your recipient's email address and send email.</li>
-        <li>If you send email without providing 'line break' command (see point 4), then subject and body both will take the same content. </li>
-      </ol>
-      <h3>Background Color Change Commands:</h3>
-      <pre style='white-space: pre-wrap;'>
-    {
-      <span>Green : </span><mark class='markText'>'green'</mark><br>
-      <span>Purple : </span><mark class='markText'>'purple'</mark><br>
-      <span>Yellow : </span><mark class='markText'>'yellow'</mark><br>
-      <span>White : </span><mark class='markText'>'white'</mark><br>
-      <span>Tomato : </span><mark class='markText'>'tomato'</mark><br>
-      <span>Tan : </span><mark class='markText'>'tan'</mark><br>
-      <span>Thistle : </span><mark class='markText'>'thistle'</mark><br>
-      <span>Wheat : </span><mark class='markText'>'wheat'</mark><br>
-      <span>Lime : </span><mark class='markText'>'lime'</mark>
-    }
-    </pre>
-      <small class='smallText'><span>*</span> Yellow mark texts are the commands.</small>
+
+          <h3>Email Structure</h3>
+          <ul>
+            <li><mark>line break</mark> → separates subject from body (important!)</li>
+            <li><mark>paragraph break</mark> → adds a blank line in your text</li>
+          </ul>
+
+          <h3>Sending Your Email</h3>
+          <ul>
+            <li><mark>send email</mark> → opens your default email client</li>
+            <li><mark>send gmail</mark> → opens Gmail in a new tab</li>
+            <li>Review the email preview and make any final edits before sending</li>
+          </ul>
+
+          <h3>Pro Tips</h3>
+          <ul>
+            <li>✅ Always use "line break" after your subject for proper formatting</li>
+            <li>✅ Speak clearly and naturally - pauses help with punctuation</li>
+            <li>✅ Use the preview button to review before sending</li>
+            <li>✅ Use undo if you make a mistake</li>
+            <li>✅ The quick reference panel shows all commands at a glance</li>
+          </ul>
+        </div>
+      </div>
     </div>
-    <div class="notSupport">
-      <p><span>❌</span><span>Not Supported</span></p>
-      <p>Speech Recognition Only Working On Chrome</p>
-      <p>Try To Open This On Chrome</p>
+
+    <!-- Email Preview Modal -->
+    <div class="previewContainer hide" id="previewContainer" role="dialog" aria-modal="true" aria-labelledby="previewTitle" tabindex="-1">
+      <div class="previewContent">
+        <button class="previewClose" id="previewClose" aria-label="Close preview">✕</button>
+        <h2 id="previewTitle">📧 Email Preview</h2>
+        <div class="previewBody">
+          <div class="previewField">
+            <label>To:</label>
+            <input type="email" id="previewTo" placeholder="Recipient email">
+          </div>
+          <div class="previewField">
+            <label>Subject:</label>
+            <div class="previewText" id="previewSubject">No subject</div>
+          </div>
+          <div class="previewField">
+            <label>Body:</label>
+            <div class="previewText" id="previewBody">No body content</div>
+          </div>
+          <div class="previewActions">
+            <button class="previewConfirm" id="previewConfirm" aria-label="Confirm and send email">✓ Looks Good, Send It!</button>
+            <button class="previewCancel" id="previewCancel" aria-label="Cancel and go back">✕ Go Back</button>
+          </div>
+        </div>
+      </div>
     </div>
-    <script src="speech.min.js" type="text/javascript"></script>
+
+    <script src="speech.js" type="text/javascript"></script>
   </body>
 
 </html>

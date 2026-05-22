@@ -1,177 +1,418 @@
-!(function() {
-    var speech = document.querySelector('.speech'),
-        startBtn = document.querySelector('.start'),
-        stopBtn = document.querySelector('.stop'),
-        msg = document.querySelector('.main'),
-        status = document.querySelector('.statusBar'),
-        //email = document.querySelector('.email'),
-        instructionBtn = document.querySelector('.instructionBtn'),
-        close = document.querySelector('.instructionClose'),
-        small = document.querySelector('.smallText'),
-        marked = document.querySelectorAll('.markText'),
-        clearText = document.querySelector('.clear'),
-        notSupport = document.querySelector('.notSupport');
+(function() {
+    // DOM Elements
+    const msg = document.querySelector('.main');
+    const startBtn = document.querySelector('#startBtn');
+    const stopBtn = document.querySelector('#stopBtn');
+    const clearBtn = document.querySelector('#clearBtn');
+    const instructionBtn = document.querySelector('#instructionBtn');
+    const previewBtn = document.querySelector('#previewBtn');
+    const instructionContainer = document.querySelector('#instructionContainer');
+    const instructionClose = document.querySelector('#instructionClose');
+    const previewContainer = document.querySelector('#previewContainer');
+    const previewClose = document.querySelector('#previewClose');
+    const defaultEmailInput = document.querySelector('#defaultEmail');
+    const gmailEmailInput = document.querySelector('#gmailEmail');
+    const interimDisplay = document.querySelector('#interimDisplay');
+    const charCountSpan = document.querySelector('#charCount');
+    const wordCountSpan = document.querySelector('#wordCount');
+    const copyBtn = document.querySelector('#copyBtn');
+    const undoBtn = document.querySelector('#undoBtn');
+    const redoBtn = document.querySelector('#redoBtn');
+    const sendEmailBtn = document.querySelector('#sendEmailBtn');
+    const sendGmailBtn = document.querySelector('#sendGmailBtn');
+    const statusDot = document.querySelector('.statusDot');
+    const statusText = document.querySelector('.statusText');
+    const notSupport = document.querySelector('.notSupport');
+    const quickRefHeader = document.querySelector('.quickRefHeader');
+    const quickRefContent = document.querySelector('#quickRefContent');
+    const toggleQuickRef = document.querySelector('#toggleQuickRef');
 
-    (window.SpeechRecognition || window.webkitSpeechRecognition) ? ((window.SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition), notSupport.classList.add('hide')) : notSupport.classList.add('show');
+    // History management
+    let history = [''];
+    let historyIndex = 0;
 
-    var recognition = new SpeechRecognition();
+    // Check speech recognition support
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+        notSupport.classList.add('show');
+        startBtn.disabled = true;
+        return;
+    }
+    
+    notSupport.classList.add('hide');
+
+    let recognition = new SpeechRecognition();
     recognition.interimResults = true;
-    //recognition.continuous = false;
-    //recognition.maxAlternatives = 10;
+    recognition.lang = 'en-US';
+
+    // Commands configuration
+    const textCommands = {
+        'full stop': '.',
+        'comma': ',',
+        'exclamation sign': '!',
+        'question mark': '?'
+    };
+
+    // Helper Functions
+    const updateCharCount = () => {
+        const text = msg.innerText;
+        charCountSpan.textContent = text.length;
+        const words = text.trim().split(/\s+/).filter(w => w.length > 0).length;
+        wordCountSpan.textContent = text.trim().length > 0 ? words : 0;
+    };
+
+    const updateStatus = (status, statusClass) => {
+        statusText.textContent = status;
+        statusDot.className = `statusDot ${statusClass}`;
+    };
+
+    const saveHistory = () => {
+        history = history.slice(0, historyIndex + 1);
+        history.push(msg.innerHTML);
+        historyIndex++;
+        updateUndoRedoButtons();
+    };
+
+    const updateUndoRedoButtons = () => {
+        undoBtn.disabled = historyIndex <= 0;
+        redoBtn.disabled = historyIndex >= history.length - 1;
+    };
+
+    const copyToClipboard = () => {
+        const text = msg.innerText;
+        if (text.trim() === '') {
+            alert('Nothing to copy! Please record some text first.');
+            return;
+        }
+        navigator.clipboard.writeText(text).then(() => {
+            const originalText = copyBtn.textContent;
+            copyBtn.textContent = '✓ Copied!';
+            setTimeout(() => {
+                copyBtn.textContent = originalText;
+            }, 2000);
+        }).catch(() => {
+            alert('Failed to copy. Please try again.');
+        });
+    };
+
+    const undo = () => {
+        if (historyIndex > 0) {
+            historyIndex--;
+            msg.innerHTML = history[historyIndex];
+            updateUndoRedoButtons();
+            updateCharCount();
+        }
+    };
+
+    const redo = () => {
+        if (historyIndex < history.length - 1) {
+            historyIndex++;
+            msg.innerHTML = history[historyIndex];
+            updateUndoRedoButtons();
+            updateCharCount();
+        }
+    };
+
+    const extractSubjectAndBody = () => {
+        const spans = Array.from(document.querySelectorAll('.main span'));
+        const breakIndex = spans.findIndex((span) => span.dataset.break === 'line' || span.dataset.break === 'paragraph');
+
+        const toPlainText = (items) => {
+            return items.map((item) => {
+                if (item.dataset.break === 'line' || item.dataset.break === 'paragraph') {
+                    return '\n';
+                }
+                return item.textContent;
+            }).join(' ').replace(/\s*\n\s*/g, '\n').trim();
+        };
+
+        if (breakIndex === -1) {
+            return {
+                subject: toPlainText(spans),
+                body: ''
+            };
+        }
+
+        return {
+            subject: toPlainText(spans.slice(0, breakIndex)),
+            body: toPlainText(spans.slice(breakIndex + 1))
+        };
+    };
+
+    const isValidEmail = (email) => {
+        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    };
+
+    const showEmailPreview = (recipient) => {
+        if (msg.innerText.trim() === '') {
+            alert('No text to preview! Please record some content first.');
+            return;
+        }
+
+        if (!isValidEmail(recipient)) {
+            alert('Invalid recipient email: ' + recipient);
+            return;
+        }
+
+        const { subject, body } = extractSubjectAndBody();
+        
+        document.querySelector('#previewTo').value = recipient;
+        document.querySelector('#previewSubject').textContent = subject || '(No subject)';
+        document.querySelector('#previewBody').textContent = body || '(No body)';
+        
+        previewContainer.classList.remove('hide');
+        previewContainer.classList.add('show');
+        previewClose.focus();
+    };
+
+    const sendEmail = (recipient = defaultEmailInput.value || 'name@domain.com', isGmail = false) => {
+        if (msg.innerText.trim() === '') {
+            alert('No text to send! Please record your message first.');
+            return;
+        }
+
+        if (!isValidEmail(recipient)) {
+            alert('Invalid email address: ' + recipient + '\nPlease update the email address.');
+            return;
+        }
+
+        const { subject, body } = extractSubjectAndBody();
+        
+        try {
+            if (isGmail) {
+                window.open(
+                    `https://mail.google.com/mail/u/0/?view=cm&fs=1&tf=1&to=${encodeURIComponent(recipient)}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`,
+                    '_blank'
+                );
+            } else {
+                window.location.href = `mailto:${encodeURIComponent(recipient)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+            }
+        } catch (err) {
+            alert('Error opening email client. Please check your email address.');
+        }
+    };
+
+    // Speech Recognition Event Handlers
+    recognition.onstart = () => {
+        updateStatus('🎤 Listening...', 'listening');
+        startBtn.classList.add('disable');
+        stopBtn.classList.remove('disable');
+    };
 
     recognition.onresult = (e) => {
-        var colors = ['green', 'purple', 'yellow', 'white', 'tomato', 'tan', 'thistle', 'wheat', 'lime'];
-        //console.log(e.results[0][0].transcript);
-        if (e.results[0].isFinal) {
-            var span = document.createElement('span'),
-                span2 = document.createElement('p');
-            span.innerHTML = span2.innerHTML = e.results[0][0].transcript;
-            if (span.innerHTML.includes('open alert')) {
-                alert('alert box open!');
-            }
-            if (span.innerHTML.includes('line break')) {
-                span.innerHTML = '<p></p>';
-                console.log(span.innerHTML);
-            }
-            if (span.innerHTML.includes('paragraph break')) {
-                span.innerHTML = '<br><br>';
-                console.log(span.innerHTML);
-            }
-            if (span.innerHTML.includes('full stop')) {
-                span.innerHTML = span.innerHTML.replace(/(full stop)/g, '. ');
-            }
-
-            if (span.innerHTML.includes('comma')) {
-                span.innerHTML = ', ';
-            }
-            if (span.innerHTML.includes('exclamation sign')) {
-                span.innerHTML = span.innerHTML.replace(/(exclamation sign)/g, '! ');
-            }
-
-            colors.map(d => {
-                var f = span.innerHTML;
-                if (f.toLowerCase().trim() === d) {
-                    document.body.style.background = d;
-                } else {
-                    console.log('no match!');
-                }
-            });
-
-            var sendEmail = () => {
-                if (msg.innerText === '') {
-                    alert('No text is there for sending email!\nPlease click \'Start\' button to speak.\nYou\'re great. You can do it. Just Yell !');
-                } else {
-                    var dam = Array.from(document.querySelectorAll('.main span')),
-                        p1, p2, index, subject, body;
-
-                    dam.map((d, i) => {
-                        if (d.innerHTML === '<p></p>') {
-                            index = i;
-                        }
-                        p1 = dam.slice(0, index), p2 = dam.slice(index + 1, dam.length);
-
-                        subject = p1.map(d => d.innerHTML);
-                        body = p2.map(d => d.innerHTML);
-                    });
-                    window.open('mailto:name@domain.com?subject=' + subject.join(' ') + '&body=' + body.join(' ').replace(/(<br><br>)/g, '%0D'), '_self');
-                }
-            }
-
-            var sendGmail = () => {
-                if (msg.innerText === '') {
-                    alert('No text is there for sending email!\nPlease click \'Start\' button to speak.\nYou\'re great. You can do it. Just Yell !');
-                } else {
-                    var dam = Array.from(document.querySelectorAll('.main span')),
-                        p1, p2, index, subject, body;
-
-                    dam.map((d, i) => {
-                        if (d.innerHTML === '<p></p>') {
-                            index = i;
-                        }
-                        p1 = dam.slice(0, index), p2 = dam.slice(index + 1, dam.length);
-
-                        subject = p1.map(d => d.innerHTML);
-                        body = p2.map(d => d.innerHTML);
-                    });
-                    window.open('https://mail.google.com/mail/u/0/?view=cm&fs=1&tf=1&to=someone@gmail.com&su=' + subject.join(' ') + '&body=' + body.join(' ').replace(/(<br><br>)/g, '%0D') + '&cc=cc@mail.com&bcc=bcc@mail.com', '_blank');
-                }
-            }
-
-            //email.onclick = sendEmail;
-
-            if (span2.innerHTML.includes('delete now')) {
-                var g = Array.from(document.querySelectorAll('.main span'));
-                var f = g.splice(this.length - 1, 2);
-                msg.innerHTML = '';
-                g.map(d => {
-                    (d.innerHTML === '') ? console.log(d): msg.appendChild(d)
+        let interimTranscript = '';
+        
+        for (let i = e.resultIndex; i < e.results.length; i++) {
+            const transcript = e.results[i][0].transcript;
+            
+            if (e.results[i].isFinal) {
+                let span = document.createElement('span');
+                let transcriptLower = transcript.toLowerCase().trim();
+                
+                // Process text replacements
+                let processedText = transcript;
+                
+                Object.entries(textCommands).forEach(([command, replacement]) => {
+                    processedText = processedText.replace(new RegExp(command, 'gi'), replacement);
                 });
-            } else if (span2.innerHTML.includes('send email')) {
-                sendEmail();
-            } else if (span2.innerHTML.includes('send Gmail')) {
-                sendGmail();
+                
+                span.textContent = processedText;
+                
+                // Handle special commands
+                if (transcriptLower.includes('line break')) {
+                    span.dataset.break = 'line';
+                    span.innerHTML = '<p></p>';
+                    msg.appendChild(span);
+                } else if (transcriptLower.includes('paragraph break')) {
+                    span.dataset.break = 'paragraph';
+                    span.innerHTML = '<br><br>';
+                    msg.appendChild(span);
+                } else if (transcriptLower.includes('delete now')) {
+                    const spans = Array.from(document.querySelectorAll('.main span'));
+                    if (spans.length > 0) {
+                        spans[spans.length - 1].remove();
+                    }
+                } else if (transcriptLower.includes('send email')) {
+                    sendEmail(defaultEmailInput.value || 'name@domain.com', false);
+                    return;
+                } else if (transcriptLower.includes('send gmail')) {
+                    sendEmail(gmailEmailInput.value || 'someone@gmail.com', true);
+                    return;
+                } else {
+                    msg.appendChild(span);
+                }
+                
+                saveHistory();
+                updateCharCount();
             } else {
-                msg.appendChild(span);
+                interimTranscript += transcript;
             }
         }
-    }
+        
+        // Show interim results
+        if (interimTranscript) {
+            interimDisplay.textContent = '🔤 ' + interimTranscript;
+            interimDisplay.classList.add('active');
+        } else {
+            interimDisplay.classList.remove('active');
+        }
+    };
 
     recognition.onend = () => {
-        stopBtn.classList.contains('speechEnd') ? recognition.stop() : recognition.start();
-    }
-
-    recognition.onnomatch = () => {
-        console.log('Not Match!! Louder');
-    }
-
-    startBtn.onclick = () => {
-        recognition.start();
-        speech.innerHTML = '';
-        startBtn.classList.add('disable');
-        startBtn.tabIndex = '-1';
-        stopBtn.classList.remove('speechEnd');
-    }
-
-    stopBtn.onclick = () => {
-        recognition.stop();
-        speech.innerHTML = '( Click start button & talk )';
+        updateStatus('✓ Ready', 'ready');
         startBtn.classList.remove('disable');
-        startBtn.tabIndex = '0';
-        stopBtn.classList.add('speechEnd');
-    }
+        stopBtn.classList.add('disable');
+        interimDisplay.classList.remove('active');
+    };
 
-    clearText.onclick = () => msg.innerHTML = '';
+    recognition.onerror = (e) => {
+        switch(e.error) {
+            case 'no-speech':
+                updateStatus('⚠️ No speech detected', 'ready');
+                alert('No speech detected. Please try again.');
+                break;
+            case 'audio-capture':
+                alert('No microphone found. Please check your microphone connection.');
+                updateStatus('❌ No microphone', 'ready');
+                break;
+            case 'network':
+                alert('Network error. Please check your internet connection.');
+                updateStatus('❌ Network error', 'ready');
+                break;
+            case 'permission-denied':
+                alert('Microphone permission denied. Please enable microphone access.');
+                updateStatus('❌ Permission denied', 'ready');
+                break;
+            default:
+                if (e.error !== 'aborted') {
+                    alert(`Error: ${e.error}. Please try again.`);
+                    updateStatus('❌ Error: ' + e.error, 'ready');
+                }
+        }
+        startBtn.classList.remove('disable');
+        stopBtn.classList.add('disable');
+    };
 
-    recognition.onspeechstart = () => {
-        console.log('speech start');
-        status.classList.add('statusActive');
-    }
+    // Button Event Listeners
+    startBtn.addEventListener('click', () => {
+        recognition.start();
+    });
 
-    recognition.onspeechend = () => {
-        console.log('speech start');
-        status.classList.remove('statusActive');
-    }
+    stopBtn.addEventListener('click', () => {
+        recognition.stop();
+    });
 
-    recognition.onaudiostart = () => {
-        console.log('audio start');
-    }
+    clearBtn.addEventListener('click', () => {
+        if (msg.innerText.trim() !== '') {
+            if (confirm('Are you sure you want to clear all text?')) {
+                msg.innerHTML = '';
+                history = [''];
+                historyIndex = 0;
+                updateCharCount();
+                updateUndoRedoButtons();
+            }
+        }
+    });
 
-    small.onmouseover = () => {
-        Array.from(marked).map(d => d.style.outline = '2px solid red')
-    }
-    small.onmouseout = () => {
-        Array.from(marked).map(d => d.style.outline = '0')
-    }
+    copyBtn.addEventListener('click', copyToClipboard);
+    undoBtn.addEventListener('click', undo);
+    redoBtn.addEventListener('click', redo);
 
-    instructionBtn.onclick = () => {
-        document.querySelector('.instructionContainer').classList.add('show');
-        document.querySelector('.instructionContainer').classList.remove('hide');
-        close.tabIndex = 0;
-    }
+    sendEmailBtn.addEventListener('click', () => {
+        showEmailPreview(defaultEmailInput.value || 'name@domain.com');
+    });
 
-    close.onclick = () => {
-        document.querySelector('.instructionContainer').classList.add('hide');
-        document.querySelector('.instructionContainer').classList.remove('show');
-        close.tabIndex = -1;
-    }
+    sendGmailBtn.addEventListener('click', () => {
+        showEmailPreview(gmailEmailInput.value || 'someone@gmail.com');
+    });
+
+    // Instructions Modal
+    instructionBtn.addEventListener('click', () => {
+        instructionContainer.classList.remove('hide');
+        instructionContainer.classList.add('show');
+        instructionClose.focus();
+    });
+
+    instructionClose.addEventListener('click', () => {
+        instructionContainer.classList.add('hide');
+        instructionContainer.classList.remove('show');
+    });
+
+    // Close modal on ESC key
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            if (instructionContainer.classList.contains('show')) {
+                instructionContainer.classList.add('hide');
+                instructionContainer.classList.remove('show');
+            }
+            if (previewContainer.classList.contains('show')) {
+                previewContainer.classList.add('hide');
+                previewContainer.classList.remove('show');
+            }
+        }
+    });
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', (e) => {
+        if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+            e.preventDefault();
+            undo();
+        }
+        if ((e.ctrlKey || e.metaKey) && e.key === 'y') {
+            e.preventDefault();
+            redo();
+        }
+        if ((e.ctrlKey || e.metaKey) && e.key === 'c' && document.activeElement === msg) {
+            // Allow default copy behavior
+        }
+    });
+
+    // Preview Modal
+    previewBtn.addEventListener('click', () => {
+        showEmailPreview(defaultEmailInput.value || 'name@domain.com');
+    });
+
+    previewClose.addEventListener('click', () => {
+        previewContainer.classList.add('hide');
+        previewContainer.classList.remove('show');
+        previewBtn.focus();
+    });
+
+    document.querySelector('#previewConfirm').addEventListener('click', () => {
+        const recipient = document.querySelector('#previewTo').value;
+        previewContainer.classList.add('hide');
+        previewContainer.classList.remove('show');
+        sendEmail(recipient, recipient.includes('gmail.com'));
+    });
+
+    document.querySelector('#previewCancel').addEventListener('click', () => {
+        previewContainer.classList.add('hide');
+        previewContainer.classList.remove('show');
+        previewBtn.focus();
+    });
+
+    // Quick Reference Toggle
+    quickRefHeader.addEventListener('click', () => {
+        quickRefContent.classList.toggle('collapsed');
+        toggleQuickRef.textContent = quickRefContent.classList.contains('collapsed') ? '+' : '−';
+    });
+
+    // Click outside modals to close
+    instructionContainer.addEventListener('click', (e) => {
+        if (e.target === instructionContainer) {
+            instructionContainer.classList.add('hide');
+            instructionContainer.classList.remove('show');
+        }
+    });
+
+    previewContainer.addEventListener('click', (e) => {
+        if (e.target === previewContainer) {
+            previewContainer.classList.add('hide');
+            previewContainer.classList.remove('show');
+        }
+    });
+
+    // Initialize
+    updateStatus('✓ Ready', 'ready');
+    updateUndoRedoButtons();
 })();
