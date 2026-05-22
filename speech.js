@@ -30,6 +30,7 @@
     // History management
     let history = [''];
     let historyIndex = 0;
+    let activeSection = 'subject';
 
     // Check speech recognition support
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -78,6 +79,140 @@
         redoBtn.disabled = historyIndex >= history.length - 1;
     };
 
+    const createTextSpan = (text) => {
+        const span = document.createElement('span');
+        span.textContent = text;
+        return span;
+    };
+
+    const createBreakSpan = (type) => {
+        const span = document.createElement('span');
+        span.dataset.break = type;
+        span.innerHTML = type === 'line' ? '<p></p>' : '<br><br>';
+        return span;
+    };
+
+    const normalizeSubject = (text) => {
+        return text.replace(/\s+/g, ' ').trim();
+    };
+
+    const normalizeBody = (text) => {
+        return text
+            .replace(/\r\n/g, '\n')
+            .replace(/[ \t]+\n/g, '\n')
+            .replace(/\n[ \t]+/g, '\n')
+            .trim();
+    };
+
+    const renderDraft = ({ subject, body }) => {
+        msg.innerHTML = '';
+
+        const cleanSubject = normalizeSubject(subject);
+        const cleanBody = normalizeBody(body);
+
+        if (cleanSubject) {
+            msg.appendChild(createTextSpan(cleanSubject));
+        }
+
+        if (!cleanBody) {
+            return;
+        }
+
+        msg.appendChild(createBreakSpan('line'));
+
+        cleanBody.split(/(\n+)/).forEach((token) => {
+            if (!token) {
+                return;
+            }
+
+            if (/^\n+$/.test(token)) {
+                token.split('').forEach(() => {
+                    msg.appendChild(createBreakSpan('paragraph'));
+                });
+                return;
+            }
+
+            const cleanToken = token.trim();
+            if (cleanToken) {
+                msg.appendChild(createTextSpan(cleanToken));
+            }
+        });
+    };
+
+    const setActiveSection = (section, label = null) => {
+        activeSection = section;
+        if (label) {
+            updateStatus(label, 'ready');
+        }
+    };
+
+    const appendToSection = (section, text) => {
+        const cleanText = text.trim();
+        if (!cleanText) {
+            return;
+        }
+
+        const draft = extractSubjectAndBody();
+
+        if (section === 'subject') {
+            draft.subject = draft.subject ? `${draft.subject} ${cleanText}` : cleanText;
+            draft.subject = normalizeSubject(draft.subject);
+        } else {
+            draft.body = draft.body
+                ? (draft.body.endsWith('\n') ? `${draft.body}${cleanText}` : `${draft.body} ${cleanText}`)
+                : cleanText;
+            draft.body = normalizeBody(draft.body);
+        }
+
+        renderDraft(draft);
+        saveHistory();
+        updateCharCount();
+    };
+
+    const replaceSection = (section) => {
+        const draft = extractSubjectAndBody();
+        draft[section] = '';
+        renderDraft(draft);
+        saveHistory();
+        updateCharCount();
+    };
+
+    const insertBodyBreak = (type) => {
+        const draft = extractSubjectAndBody();
+        setActiveSection('body');
+
+        if (draft.body) {
+            draft.body = `${draft.body}${type === 'paragraph' ? '\n\n' : '\n'}`;
+            renderDraft(draft);
+            saveHistory();
+            updateCharCount();
+        }
+    };
+
+    const deleteFromActiveSection = () => {
+        const draft = extractSubjectAndBody();
+        const currentText = activeSection === 'subject' ? draft.subject : draft.body;
+        const trimmedText = currentText.replace(/\s+$/, '');
+
+        if (!trimmedText) {
+            return;
+        }
+
+        draft[activeSection] = trimmedText.endsWith('\n')
+            ? trimmedText.replace(/\n+$/, '').trimEnd()
+            : trimmedText.replace(/\s*\S+$/, '').trimEnd();
+
+        if (activeSection === 'subject') {
+            draft.subject = normalizeSubject(draft.subject);
+        } else {
+            draft.body = normalizeBody(draft.body);
+        }
+
+        renderDraft(draft);
+        saveHistory();
+        updateCharCount();
+    };
+
     const copyToClipboard = () => {
         const text = msg.innerText;
         if (text.trim() === '') {
@@ -115,27 +250,32 @@
 
     const extractSubjectAndBody = () => {
         const spans = Array.from(document.querySelectorAll('.main span'));
-        const breakIndex = spans.findIndex((span) => span.dataset.break === 'line' || span.dataset.break === 'paragraph');
+        const breakIndex = spans.findIndex((span) => span.dataset.break === 'line');
 
         const toPlainText = (items) => {
             return items.map((item) => {
-                if (item.dataset.break === 'line' || item.dataset.break === 'paragraph') {
+                if (item.dataset.break === 'paragraph') {
                     return '\n';
                 }
+
+                if (item.dataset.break === 'line') {
+                    return '\n';
+                }
+
                 return item.textContent;
             }).join(' ').replace(/\s*\n\s*/g, '\n').trim();
         };
 
         if (breakIndex === -1) {
             return {
-                subject: toPlainText(spans),
+                subject: normalizeSubject(toPlainText(spans)),
                 body: ''
             };
         }
 
         return {
-            subject: toPlainText(spans.slice(0, breakIndex)),
-            body: toPlainText(spans.slice(breakIndex + 1))
+            subject: normalizeSubject(toPlainText(spans.slice(0, breakIndex))),
+            body: normalizeBody(toPlainText(spans.slice(breakIndex + 1)))
         };
     };
 
@@ -219,19 +359,31 @@
                 span.textContent = processedText;
                 
                 // Handle special commands
-                if (transcriptLower.includes('line break')) {
-                    span.dataset.break = 'line';
-                    span.innerHTML = '<p></p>';
-                    msg.appendChild(span);
+                if (transcriptLower.includes('replace subject')) {
+                    replaceSection('subject');
+                    setActiveSection('subject', '✏️ Replacing subject');
+                    return;
+                } else if (transcriptLower.includes('replace body')) {
+                    replaceSection('body');
+                    setActiveSection('body', '✏️ Replacing body');
+                    return;
+                } else if (transcriptLower.includes('subject mode')) {
+                    setActiveSection('subject', '✏️ Subject mode');
+                    return;
+                } else if (transcriptLower.includes('body mode')) {
+                    setActiveSection('body', '✏️ Body mode');
+                    return;
+                } else if (transcriptLower.includes('line break')) {
+                    insertBodyBreak('line');
+                    updateStatus('✏️ Body mode', 'ready');
+                    return;
                 } else if (transcriptLower.includes('paragraph break')) {
-                    span.dataset.break = 'paragraph';
-                    span.innerHTML = '<br><br>';
-                    msg.appendChild(span);
+                    insertBodyBreak('paragraph');
+                    updateStatus('✏️ Body paragraph', 'ready');
+                    return;
                 } else if (transcriptLower.includes('delete now')) {
-                    const spans = Array.from(document.querySelectorAll('.main span'));
-                    if (spans.length > 0) {
-                        spans[spans.length - 1].remove();
-                    }
+                    deleteFromActiveSection();
+                    return;
                 } else if (transcriptLower.includes('send email')) {
                     sendEmail(defaultEmailInput.value || 'name@domain.com', false);
                     return;
@@ -239,11 +391,9 @@
                     sendEmail(gmailEmailInput.value || 'someone@gmail.com', true);
                     return;
                 } else {
-                    msg.appendChild(span);
+                    appendToSection(activeSection, processedText);
+                    return;
                 }
-                
-                saveHistory();
-                updateCharCount();
             } else {
                 interimTranscript += transcript;
             }
